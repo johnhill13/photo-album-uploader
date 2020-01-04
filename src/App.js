@@ -29,6 +29,14 @@ const ListAlbums = `query ListAlbums {
   }
 }`;
 
+const SubscribeToNewAlbums = `
+subscription OnCreateAlbum {
+  onCreateAlbum {
+    id
+    name
+  }
+}`;
+
 class AlbumsList extends React.Component {
   albumItems() {
     return this.props.albums
