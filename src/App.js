@@ -75,13 +75,13 @@ class NewAlbum extends Component {
     };
   }
 
-  handleChange = (event) => {
+  handleChange = event => {
     let change = {};
     change[event.target.name] = event.target.value;
     this.setState(change);
-  }
-  
-  handleSubmit = async (event) => {
+  };
+
+  handleSubmit = async event => {
     event.preventDefault();
     const NewAlbum = `mutation NewAlbum($name:String!) {
       createAlbum(input: {name: $name}) {
@@ -89,6 +89,27 @@ class NewAlbum extends Component {
         name
       }
     }`;
+    const result = await API.graphql(
+      graphqlOperation(NewAlbum, { name: this.state.albumName })
+    );
+    console.info(`Create album with id ${result.data.createAlbum.id}`);
+  };
+  render() {
+    return (
+      <Segment>
+        <Header as="h3"> Add a new album </Header>
+        <Input
+          type="text"
+          placeholder="New Album Name"
+          icon="plus"
+          iconPosition="left"
+          action={{ content: "Create", onClick: this.handleSubmit }}
+          name="albumName"
+          value={this.state.albumName}
+          onChange={this.handleChange}
+        />
+      </Segment>
+    );
   }
 }
 
