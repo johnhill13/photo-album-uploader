@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Grid, Header, Input, List, Segment } from "semantic-ui-react";
-import Amplify from "aws-amplify";
+import Amplify, { API, graphqlOperation } from "aws-amplify";
 import aws_exports from "./aws-exports";
 import { withAuthenticator } from "aws-amplify-react";
 import { Connect } from "aws-amplify-react";
@@ -33,16 +33,15 @@ const ListAlbums = `query ListAlbums {
 
 class AlbumsList extends React.Component {
   albumItems() {
-        return this.props.albums.sort(makeComparator('name')).map(album =>
-            <li key={album.id}>
-                {album.name}
-            </li>);
-    }
+    return this.props.albums
+      .sort(makeComparator("name"))
+      .map(album => <li key={album.id}>{album.name}</li>);
+  }
 
   render() {
     return (
       <Segment>
-        <Header as='h3'>My Albums</Header>
+        <Header as="h3">My Albums</Header>
         <List divided relaxed>
           {this.albumItems()}
         </List>
@@ -65,6 +64,15 @@ class AlbumsListLoader extends React.Component {
         }}
       </Connect>
     );
+  }
+}
+// NewAlbum component for saving new albums
+class NewAlbum extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      albumName: ""
+    };
   }
 }
 
