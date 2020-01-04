@@ -1,0 +1,19 @@
+{
+    "pocalbum": {
+        "awscloudformation": {
+            "AuthRoleName": "amplify-photo-album-uploader-pocalbum-144803-authRole",
+            "UnauthRoleArn": "arn:aws:iam::422768202910:role/amplify-photo-album-uploader-pocalbum-144803-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::422768202910:role/amplify-photo-album-uploader-pocalbum-144803-authRole",
+            "Region": "us-west-2",
+            "DeploymentBucketName": "amplify-photo-album-uploader-pocalbum-144803-deployment",
+            "UnauthRoleName": "amplify-photo-album-uploader-pocalbum-144803-unauthRole",
+            "StackName": "amplify-photo-album-uploader-pocalbum-144803",
+            "StackId": "arn:aws:cloudformation:us-west-2:422768202910:stack/amplify-photo-album-uploader-pocalbum-144803/1a0b3a60-2e7b-11ea-92ca-067bcb97a926"
+        },
+        "categories": {
+            "auth": {
+                "photoalbumuploader5bcfbdad": {}
+            }
+        }
+    }
+}
