@@ -74,6 +74,22 @@ class NewAlbum extends Component {
       albumName: ""
     };
   }
+
+  handleChange = (event) => {
+    let change = {};
+    change[event.target.name] = event.target.value;
+    this.setState(change);
+  }
+  
+  handleSubmit = async (event) => {
+    event.preventDefault();
+    const NewAlbum = `mutation NewAlbum($name:String!) {
+      createAlbum(input: {name: $name}) {
+        id
+        name
+      }
+    }`;
+  }
 }
 
 class App extends Component {
