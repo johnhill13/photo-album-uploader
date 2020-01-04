@@ -58,14 +58,13 @@ class AlbumsList extends React.Component {
 
 class AlbumsListLoader extends React.Component {
   onNewAlbum = (prevQuery, newData) => {
-    let updateQuery = OBject.assig({}, prevQuery);
+    let updatedQuery = Object.assign({}, prevQuery);
     updatedQuery.listAlbums.Items = prevQuery.listAlbums.Items.concat([newData.onCreateAlbum]);
-    return updateQuery;
+    return updatedQuery;
   }
   render() {
     return (
       <Connect query={graphqlOperation(ListAlbums)}>
-        
         {({ data, loading, errors }) => {
           if (loading) {
             return <div>Loading...</div>;
