@@ -118,6 +118,7 @@ class App extends Component {
     return (
       <Grid padded>
         <Grid.Column>
+          <NewAlbum />
           <AlbumsListLoader />
         </Grid.Column>
       </Grid>
