@@ -4,8 +4,6 @@ import Amplify, { API, graphqlOperation } from "aws-amplify";
 import aws_exports from "./aws-exports";
 import { withAuthenticator } from "aws-amplify-react";
 import { Connect } from "aws-amplify-react";
-import { graphqlOperation } from "aws-amplify";
-
 Amplify.configure(aws_exports);
 
 function makeComparator(key, order = "asc") {
