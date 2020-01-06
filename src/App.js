@@ -4,7 +4,7 @@ import Amplify, { API, graphqlOperation } from "aws-amplify";
 import aws_exports from "./aws-exports";
 import { withAuthenticator } from "aws-amplify-react";
 import { Connect } from "aws-amplify-react";
-import { BrowserRouter as Router, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Route, NavLink } from "react-router-dom";
 Amplify.configure(aws_exports);
 
 function makeComparator(key, order = "asc") {
@@ -38,6 +38,13 @@ subscription OnCreateAlbum {
   }
 }`;
 
+const GetAlbum = `query GetAlbum($id: ID!) {
+    getAlbum(id: $id) {
+      id
+      name
+    }
+  }`;
+
 class AlbumsList extends React.Component {
   albumItems() {
     return this.props.albums
@@ -60,16 +67,18 @@ class AlbumsList extends React.Component {
 class AlbumsListLoader extends React.Component {
   onNewAlbum = (prevQuery, newData) => {
     let updatedQuery = Object.assign({}, prevQuery);
-    updatedQuery.listAlbums.items = prevQuery.listAlbums.items.concat([newData.onCreateAlbum]);
+    updatedQuery.listAlbums.items = prevQuery.listAlbums.items.concat([
+      newData.onCreateAlbum
+    ]);
     return updatedQuery;
-  }
+  };
   render() {
     return (
-      <Connect query={graphqlOperation(ListAlbums)}
+      <Connect
+        query={graphqlOperation(ListAlbums)}
         subscription={graphqlOperation(SubscribeToNewAlbums)}
-
         onSubscriptionMsg={this.onNewAlbum}
-        >
+      >
         {({ data, loading, errors }) => {
           if (loading) {
             return <div>Loading...</div>;
