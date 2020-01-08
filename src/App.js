@@ -47,9 +47,11 @@ const GetAlbum = `query GetAlbum($id: ID!) {
 
 class AlbumsList extends React.Component {
   albumItems() {
-    return this.props.albums
-      .sort(makeComparator("name"))
-      .map(album => <li key={album.id}>{album.name}</li>);
+    return this.props.albums.sort(makeComparator("name")).map(album => (
+      <List.Item key={album.id}>
+        <NavLink to={`/albums/$album.id`}>{album.name}</NavLink>
+      </List.Item>
+    ));
   }
 
   render() {
@@ -172,21 +174,27 @@ class App extends Component {
     return (
       <Router>
         <Grid padded>
-        <Grid.Column>
-          <Route path="/" exact component={NewAlbum}/>
-          <Route path="/" exact component={AlbumsListLoader}/>
-          <Route
-            path="/albums/:albumId"
-            render={ () => <div><NavLink to='/'>Back to Albums</NavLink></div>}
+          <Grid.Column>
+            <Route path="/" exact component={NewAlbum} />
+            <Route path="/" exact component={AlbumsListLoader} />
+            <Route
+              path="/albums/:albumId"
+              render={() => (
+                <div>
+                  <NavLink to="/">Back to Albums</NavLink>
+                </div>
+              )}
             />
             <Route
               path="/albums/:albumId"
-              render={ props => <AlbumDetailsLoader id={props.match.params.albumId} />}
-              />
-        </Grid.Column>
+              render={props => (
+                <AlbumDetailsLoader id={props.match.params.albumId} />
+              )}
+            />
+          </Grid.Column>
         </Grid>
       </Router>
-    )
+    );
   }
 }
 export default withAuthenticator(App, { includeGreetings: true });
