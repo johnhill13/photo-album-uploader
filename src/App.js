@@ -1,10 +1,12 @@
-import React, { Component } from "react";
-import { Grid, Header, Input, List, Segment } from "semantic-ui-react";
-import Amplify, { API, graphqlOperation } from "aws-amplify";
-import aws_exports from "./aws-exports";
-import { withAuthenticator } from "aws-amplify-react";
-import { Connect } from "aws-amplify-react";
-import { BrowserRouter as Router, Route, NavLink } from "react-router-dom";
+import React, { Component } from 'react';
+import aws_exports from './aws-exports';
+import { withAuthenticator } from 'aws-amplify-react';
+import { Connect } from 'aws-amplify-react';
+import Amplify, { API, graphqlOperation, Storage } from 'aws-amplify';
+import { Form, Grid, Header, Icon, Input, List, Segment } from 'semantic-ui-react';
+import { BrowserRouter as Router, Route, NavLink} from 'react-router-dom';
+import { v4 as uuid} from 'uuid';
+
 Amplify.configure(aws_exports);
 
 function makeComparator(key, order = "asc") {
@@ -39,18 +41,29 @@ subscription OnCreateAlbum {
 }`;
 
 const GetAlbum = `query GetAlbum($id: ID!) {
-    getAlbum(id: $id) {
-      id
-      name
+  getAlbum(id: $id) {
+    id
+    name
+    photos {
+      items {
+        thumbnail {
+          width
+          height
+          key
+        }
+      }
+      nextToken
     }
-  }`;
+  }
+}
+`;
 
 class AlbumsList extends React.Component {
   albumItems() {
     return this.props.albums.sort(makeComparator("name")).map(album => (
       <List.Item key={album.id}>
-        <NavLink to={`/albums/$album.id`}>{album.name}</NavLink>
-      </List.Item>
+         <NavLink to={`/albums/${album.id}`}>{album.name}</NavLink>
+       </List.Item>
     ));
   }
 
@@ -164,7 +177,49 @@ class AlbumDetails extends Component {
     return (
       <Segment>
         <Header as="h3">{this.props.album.name}</Header>
+        <S3ImageUpload albumId={this.props.album.id} />
       </Segment>
+    );
+  }
+}
+
+class S3ImageUpload extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { uploading: false };
+  }
+
+  onChange = async (e) => {
+    const file = e.target.files[0];
+    const fileName = uuid();
+    this.setState({ uploading: true });
+    const result = await Storage.put(fileName, file, {
+      customPrefix: { public: "uploads/" },
+      metadata: { albumid: this.props.albumId }
+    });
+    console.log("Uploaded file: ", result);
+    this.setState({ uploading: false });
+  };
+
+  render() {
+    return (
+      <div>
+        <Form.Button
+          onClick={() =>
+            document.getElementById("add-image-file-input").click()
+          }
+          disabled={this.state.uploading}
+          icon="file image outline"
+          content={this.state.uploading ? "Uploading..." : "Add Image"}
+        />
+        <input
+          id="add-image-file-input"
+          type="file"
+          accept="image/*"
+          onChange={this.onChange}
+          style={{ display: "none" }}
+        />
+      </div>
     );
   }
 }
@@ -177,11 +232,12 @@ class App extends Component {
           <Grid.Column>
             <Route path="/" exact component={NewAlbum} />
             <Route path="/" exact component={AlbumsListLoader} />
+
             <Route
               path="/albums/:albumId"
               render={() => (
                 <div>
-                  <NavLink to="/">Back to Albums</NavLink>
+                  <NavLink to="/">Back to Albums list</NavLink>
                 </div>
               )}
             />
@@ -197,4 +253,5 @@ class App extends Component {
     );
   }
 }
+
 export default withAuthenticator(App, { includeGreetings: true });
