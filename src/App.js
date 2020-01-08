@@ -138,16 +138,55 @@ class NewAlbum extends Component {
   }
 }
 
+class AlbumDetailsLoader extends React.Component {
+  render() {
+    return (
+      <Connect query={graphqlOperation(GetAlbum, { id: this.props.id })}>
+        {({ data, loading, errors }) => {
+          if (loading) {
+            return <div>loading...</div>;
+          }
+          if (errors.length > 0) {
+            return <div>{JSON.stringify(errors)}</div>;
+          }
+          if (!data.getAlbum) return;
+          return <AlbumDetails album={data.getAlbum} />;
+        }}
+      </Connect>
+    );
+  }
+}
+
+class AlbumDetails extends Component {
+  render() {
+    return (
+      <Segment>
+        <Header as="h3">{this.props.album.name}</Header>
+      </Segment>
+    );
+  }
+}
+
 class App extends Component {
   render() {
     return (
-      <Grid padded>
+      <Router>
+        <Grid padded>
         <Grid.Column>
-          <NewAlbum />
-          <AlbumsListLoader />
+          <Route path="/" exact component={NewAlbum}/>
+          <Route path="/" exact component={AlbumsListLoader}/>
+          <Route
+            path="/albums/:albumId"
+            render={ () => <div><NavLink to='/'>Back to Albums</NavLink></div>}
+            />
+            <Route
+              path="/albums/:albumId"
+              render={ props => <AlbumDetailsLoader id={props.match.params.albumId} />}
+              />
         </Grid.Column>
-      </Grid>
-    );
+        </Grid>
+      </Router>
+    )
   }
 }
 export default withAuthenticator(App, { includeGreetings: true });
