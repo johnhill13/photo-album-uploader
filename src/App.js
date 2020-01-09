@@ -1,11 +1,20 @@
-import React, { Component } from 'react';
-import aws_exports from './aws-exports';
-import { withAuthenticator } from 'aws-amplify-react';
-import { Connect } from 'aws-amplify-react';
-import Amplify, { API, graphqlOperation, Storage } from 'aws-amplify';
-import { Form, Grid, Header, Icon, Input, List, Segment } from 'semantic-ui-react';
-import { BrowserRouter as Router, Route, NavLink} from 'react-router-dom';
-import { v4 as uuid} from 'uuid';
+import React, { Component } from "react";
+import aws_exports from "./aws-exports";
+import { withAuthenticator } from "aws-amplify-react";
+import { Connect } from "aws-amplify-react";
+import { S3Image } from "aws-amplify-react";
+import Amplify, { API, graphqlOperation, Storage } from "aws-amplify";
+import {
+  Divider,
+  Form,
+  Grid,
+  Header,
+  Input,
+  List,
+  Segment
+} from "semantic-ui-react";
+import { BrowserRouter as Router, Route, NavLink } from "react-router-dom";
+import { v4 as uuid } from "uuid";
 
 Amplify.configure(aws_exports);
 
@@ -19,26 +28,28 @@ function makeComparator(key, order = "asc") {
     let comparison = 0;
     if (aVal > bVal) comparison = 1;
     if (aVal < bVal) comparison = -1;
+
     return order === "desc" ? comparison * -1 : comparison;
   };
 }
 
 const ListAlbums = `query ListAlbums {
-  listAlbums(limit:9999) {
-    items {
-      id
-      name
-    }
+  listAlbums(limit: 9999) {
+      items {
+          id
+          name
+      }
   }
 }`;
 
 const SubscribeToNewAlbums = `
-subscription OnCreateAlbum {
-  onCreateAlbum {
-    id
-    name
+  subscription OnCreateAlbum {
+    onCreateAlbum {
+      id
+      name
+    }
   }
-}`;
+`;
 
 const GetAlbum = `query GetAlbum($id: ID!) {
   getAlbum(id: $id) {
@@ -62,8 +73,8 @@ class AlbumsList extends React.Component {
   albumItems() {
     return this.props.albums.sort(makeComparator("name")).map(album => (
       <List.Item key={album.id}>
-         <NavLink to={`/albums/${album.id}`}>{album.name}</NavLink>
-       </List.Item>
+        <NavLink to={`/albums/${album.id}`}>{album.name}</NavLink>
+      </List.Item>
     ));
   }
 
@@ -87,6 +98,7 @@ class AlbumsListLoader extends React.Component {
     ]);
     return updatedQuery;
   };
+
   render() {
     return (
       <Connect
@@ -106,7 +118,7 @@ class AlbumsListLoader extends React.Component {
     );
   }
 }
-// NewAlbum component for saving new albums
+
 class NewAlbum extends Component {
   constructor(props) {
     super(props);
@@ -115,41 +127,43 @@ class NewAlbum extends Component {
     };
   }
 
-  handleChange = event => {
-    let change = {};
-    change[event.target.name] = event.target.value;
-    this.setState(change);
-  };
+  handleChange = (e, { name, value }) => this.setState({ [name]: value });
 
   handleSubmit = async event => {
     event.preventDefault();
-    const NewAlbum = `mutation NewAlbum($name:String!) {
-      createAlbum(input: {name: $name}) {
-        id
-        name
-      }
-    }`;
-    const result = await API.graphql(
-      graphqlOperation(NewAlbum, { name: this.state.albumName })
-    );
-    console.info(`Create album with id ${result.data.createAlbum.id}`);
+    const NewAlbum = `mutation NewAlbum($name: String!) {
+          createAlbum(input: {name: $name}) {
+              id
+              name
+          }
+      }`;
+    try {
+      const result = await API.graphql(
+        graphqlOperation(NewAlbum, { name: this.state.albumName })
+      );
+      console.info(`Created album with id ${result.data.createAlbum.id}`);
+      this.setState({ albumName: "" });
+    } catch (err) {
+      console.error("NewAlbum mutation failed", err);
+    }
   };
+
   render() {
     return (
       <Segment>
-        <Header as="h3"> Add a new album </Header>
+        <Header as='h3'>Add a new album</Header>
         <Input
-          type="text"
-          placeholder="New Album Name"
-          icon="plus"
-          iconPosition="left"
-          action={{ content: "Create", onClick: this.handleSubmit }}
-          name="albumName"
+          type='text'
+          placeholder='New Album Name'
+          icon='plus'
+          iconPosition='left'
+          action={{ content: 'Create', onClick: this.handleSubmit }}
+          name='albumName'
           value={this.state.albumName}
           onChange={this.handleChange}
         />
       </Segment>
-    );
+    )
   }
 }
 
@@ -159,7 +173,7 @@ class AlbumDetailsLoader extends React.Component {
       <Connect query={graphqlOperation(GetAlbum, { id: this.props.id })}>
         {({ data, loading, errors }) => {
           if (loading) {
-            return <div>loading...</div>;
+            return <div>Loading...</div>;
           }
           if (errors.length > 0) {
             return <div>{JSON.stringify(errors)}</div>;
@@ -178,6 +192,7 @@ class AlbumDetails extends Component {
       <Segment>
         <Header as="h3">{this.props.album.name}</Header>
         <S3ImageUpload albumId={this.props.album.id} />
+        <PhotosList photos={this.props.album.photos.items} />
       </Segment>
     );
   }
@@ -188,8 +203,7 @@ class S3ImageUpload extends React.Component {
     super(props);
     this.state = { uploading: false };
   }
-
-  onChange = async (e) => {
+  onChange = async e => {
     const file = e.target.files[0];
     const fileName = uuid();
     this.setState({ uploading: true });
@@ -200,7 +214,6 @@ class S3ImageUpload extends React.Component {
     console.log("Uploaded file: ", result);
     this.setState({ uploading: false });
   };
-
   render() {
     return (
       <div>
@@ -219,6 +232,26 @@ class S3ImageUpload extends React.Component {
           onChange={this.onChange}
           style={{ display: "none" }}
         />
+      </div>
+    );
+  }
+}
+
+class PhotosList extends React.Component {
+  photoItems() {
+    return this.props.photos.map(photo => (
+      <S3Image
+        key={photo.thumbnail.key}
+        imgKey={photo.thumbnail.key.replace("public/", "")}
+        style={{ display: "inline-block", paddingRight: "5px" }}
+      />
+    ));
+  }
+  render() {
+    return (
+      <div>
+        <Divider hidden />
+        {this.photoItems()}
       </div>
     );
   }
